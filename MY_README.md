@@ -5,7 +5,7 @@
 ## 架构
 
 ```
-微信用户 <---> 腾讯 iLink Bot API <---> Hermes Gateway (Mac Mini) <---> Z.AI GLM-5.1 API
+微信用户 <---> 腾讯 iLink Bot API <---> Hermes 网关 (Mac Mini) <---> Z.AI GLM-5.1 API
 ```
 
 ## 环境信息
@@ -14,11 +14,11 @@
 |------|------|
 | 硬件 | Mac Mini M4 |
 | 系统 | macOS (Apple Silicon) |
-| Python | 3.11.14 (venv) |
+| Python | 3.11.14 (虚拟环境) |
 | Hermes | v0.9.0 |
-| LLM 提供商 | Z.AI / GLM |
+| 大模型提供商 | Z.AI / 智谱 GLM |
 | 模型 | glm-5.1 |
-| API 端点 | `https://api.z.ai/api/coding/paas/v4` (Coding Plan) |
+| API 端点 | `https://api.z.ai/api/coding/paas/v4`（Coding 套餐专用） |
 | 消息平台 | 微信（个人微信） |
 
 ## 安装步骤
@@ -30,7 +30,7 @@ git clone --recurse-submodules https://github.com/NousResearch/hermes-agent.git
 cd hermes-agent
 ```
 
-### 2. 创建 Python 虚拟环境并安装依赖
+### 2. 创建虚拟环境并安装依赖
 
 ```bash
 uv venv venv --python 3.11
@@ -41,7 +41,13 @@ uv pip install aiohttp cryptography qrcode
 
 ### 3. 配置环境变量
 
-编辑 `~/.hermes/.env`：
+创建目录并编辑 `~/.hermes/.env`：
+
+```bash
+mkdir -p ~/.hermes/{config,memory,skills,logs}
+```
+
+在 `~/.hermes/.env` 中写入：
 
 ```bash
 GLM_API_KEY=你的z.ai API Key
@@ -59,7 +65,7 @@ WEIXIN_GROUP_POLICY=open
 
 ```bash
 hermes model
-# 选择 Z.AI / GLM -> GLM-5.1（或其他 Coding Plan 内模型）
+# 选择 Z.AI / GLM -> GLM-5.1（或其他 Coding 套餐内的模型）
 ```
 
 Coding Lite 套餐支持的模型：GLM-5.1、GLM-5-Turbo、GLM-4.7、GLM-4.6、GLM-4.5-Air
@@ -68,12 +74,12 @@ Coding Lite 套餐支持的模型：GLM-5.1、GLM-5-Turbo、GLM-4.7、GLM-4.6、
 
 ```bash
 hermes gateway setup
-# 选择 Weixin / WeChat -> 扫码登录
+# 选择 Weixin / WeChat -> 用微信扫码登录
 ```
 
 ## 启动与管理
 
-### 启动网关（后台运行，SSH 断开不停止）
+### 一键启动（后台运行，SSH 断开不停止）
 
 ```bash
 ~/Documents/hermes-agent/start-gateway.sh
@@ -82,7 +88,7 @@ hermes gateway setup
 ### 手动启动
 
 ```bash
-cd /Users/wendiyang/Documents/hermes-agent
+cd ~/Documents/hermes-agent
 source venv/bin/activate
 nohup python3 -u -m hermes_cli.main gateway run --replace \
   > ~/.hermes/logs/gateway.log \
@@ -102,11 +108,11 @@ tail -f ~/.hermes/logs/gateway.error.log  # 错误日志
 pkill -f "hermes_cli.main gateway"
 ```
 
-### 诊断
+### 环境诊断
 
 ```bash
-hermes doctor   # 环境诊断
-hermes version  # 版本信息
+hermes doctor   # 检查环境
+hermes version  # 查看版本
 ```
 
 ## 目录结构
@@ -114,7 +120,7 @@ hermes version  # 版本信息
 ```
 ~/Documents/hermes-agent/       # 项目代码
 ~/.hermes/                      # 运行时数据
-├── .env                        # API Keys 和环境变量
+├── .env                        # API Key 和环境变量
 ├── auth.json                   # 认证状态
 ├── config.yaml                 # 配置文件
 ├── logs/                       # 日志
@@ -128,7 +134,7 @@ hermes version  # 版本信息
 
 ## 注意事项
 
-- Z.AI Coding Plan 需要使用 `https://api.z.ai/api/coding/paas/v4` 端点，不是通用 API 端点
+- Z.AI Coding 套餐必须使用 `https://api.z.ai/api/coding/paas/v4` 端点，通用 API 端点会报余额不足
 - 微信连接使用长轮询，不需要公网 IP
-- 通过 SSH 远程管理时，需用 `nohup` 方式后台启动，launchd 服务在非 GUI 会话下可能不工作
-- 微信 session 过期后需重新运行 `hermes gateway setup` 扫码
+- 通过 SSH 远程管理时，需用 `nohup` 方式后台启动（launchd 服务在非 GUI 会话下可能不工作）
+- 微信登录过期后需重新运行 `hermes gateway setup` 扫码
